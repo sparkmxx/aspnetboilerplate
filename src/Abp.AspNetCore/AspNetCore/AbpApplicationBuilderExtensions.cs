@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 using System.Linq;
+using Abp.AspNetCore.Localization;
+using Abp.Configuration;
 using Abp.Dependency;
 using Abp.Localization;
 using Castle.LoggingFacility.MsLogging;
@@ -42,7 +44,8 @@ namespace Abp.AspNetCore
 
         private static void ConfigureRequestLocalization(IApplicationBuilder app)
         {
-            using (var languageManager = app.ApplicationServices.GetRequiredService<IIocResolver>().ResolveAsDisposable<ILanguageManager>())
+            var iocResolver = app.ApplicationServices.GetRequiredService<IIocResolver>();
+            using (var languageManager = iocResolver.ResolveAsDisposable<ILanguageManager>())
             {
                 var defaultLanguage = languageManager.Object
                     .GetLanguages()
@@ -66,6 +69,8 @@ namespace Abp.AspNetCore
                     SupportedCultures = supportedCultures,
                     SupportedUICultures = supportedCultures
                 };
+
+                options.RequestCultureProviders.Insert(0, new AbpLocalizationHeaderRequestCultureProvider());
 
                 app.UseRequestLocalization(options);
             }
